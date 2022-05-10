@@ -1,3 +1,5 @@
+Node Version: v16.13.2
+
 run "yarn" to install dependences
 
 create the .env archive to insert a config environment variables REACT_APP_BASE_URL = "http://HOST:PORT/"
