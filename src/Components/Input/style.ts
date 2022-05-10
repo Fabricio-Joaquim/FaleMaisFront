@@ -2,9 +2,11 @@ import styled from 'styled-components';
 
 export const MyInput = styled.input`
  border: none;
- padding: 1rem;
+ height: 40px;
+ width: 110px;
+ padding-left: 10px;
  border-radius: 1rem;
- background: #e8e8e8;
+ background: ${props => props.theme.colors.backgroundInput};
  transition: 0.3s;
 
 :focus {
@@ -14,4 +16,13 @@ export const MyInput = styled.input`
 		inset -20px -20px 60px #ffffff;
  transition: 0.3s;
 }
+
+::-webkit-outer-spin-button,
+::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+	-moz-appearance:textfield;
+    margin: 0;
+}
+
 `;
+

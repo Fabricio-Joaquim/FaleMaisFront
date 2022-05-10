@@ -11,6 +11,7 @@ test(
 		expect(screen.getByTestId('origin')).toBeInTheDocument();
 		expect(screen.getByTestId('destin')).toBeInTheDocument();
 		expect(screen.getByTestId('plan')).toBeInTheDocument();
+		expect(screen.getByTestId('plan')).toBeInTheDocument();
 	}
 );
 

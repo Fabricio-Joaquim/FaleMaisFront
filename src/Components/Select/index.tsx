@@ -1,19 +1,32 @@
 import React from 'react';
-import { Warpper } from '../style';
+import { Warpper, ErrorMessage } from '../style';
+import { MySelect } from './style';
+
+interface IMap{
+	label: string,
+	value:string,
+	showError?:boolean
+}
+
 const Select = ({...rest}) =>{
-	const { name, label, handleChange } = rest;
+	const { name, label, handleChange,data, showError } = rest;
+
 	return(
 		<Warpper>
 			<label htmlFor={name}>{label}</label>
-			<select
+			<MySelect
 				data-testid={name}
 				onChange={handleChange}
-				placeholder='Selecionar DDD' name={name}>
-				<option value='DDD'>DDD</option>
-				<option value='DDD1'>DDD1</option>
-				<option value='DDD2'>DDD2</option>
-				<option value='DDD3'>DDD3</option>
-			</select>
+				value={rest.value}
+				name={name}>
+				<option hidden value=''>{`Selecionar ${label}`}</option>
+				{data?.map((item:IMap) => (
+					<option key={Math.random()} value={item?.value}>
+						{item?.label}
+					</option>
+				))}
+			</MySelect>
+			{showError&&<ErrorMessage>Campo inválido</ErrorMessage>}
 		</Warpper>
 	);
 };

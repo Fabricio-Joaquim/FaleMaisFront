@@ -1,52 +1,110 @@
-import React, { ChangeEvent, useState } from 'react';
-import {Button,Input, Table, Select} from '../../Components';
-import { Container,ContainerButton } from './styled';
+import React, { ChangeEvent, useState, useCallback, useEffect, useMemo } from 'react';
+import { Button, Table } from '../../Components';
+import { FormStyled,ContainerButton, SubContainerInputs, MessageDBError } from './style';
+import api from '../../services/';
+import { useQuery } from 'react-query';
+import convertArray from '../../utils/convertArray';
+import Result from '../../Components/Result/index';
+import GroupButton from '../../Components/GroupButtons';
+import { IForm } from './type';
+import {IdataForm} from '../../Components/Result/';
+import Loading from '../../Components/Loading';
 
-interface IForm {
-	origin: string;
-	destination: string;
-	minute: number;
-}
 const initialForm: IForm = {
 	origin: '',
-	destination: '',
-	minute: 0
+	destin: '',
+	plan: '',
+	callMinute: 0,
+	submited: false,
 };
 
 function App() {
-	const [input, setInput] = useState<IForm>(initialForm);
+	const [form, setForm] = useState<IForm>(initialForm);
+	const [data, setData] = useState<unknown[]>([]);
+	const [showResult, setShowResult] = useState(false);
+	const [dataResult, setDataResult] = useState<IdataForm>({withPlan:0,withoutPlan:0});
+
+	const fetchData = useCallback(async () =>
+		api.get(`/search?origin=${form.origin}&destination=${form.destin}&plan=${form.plan}&callMinute=${form.callMinute}`)
+			.then(({data}) => setDataResult(data)), [showResult, form]);
+
 	const onSubmit = (e:ChangeEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		console.log(input);
+		setForm(values => ({...values, submited: true}));
+		if (!verify){
+			setShowResult(true);
+			fetchData();
+		}
 	};
-	
-	const handleChange = (event:ChangeEvent<HTMLInputElement>) => {
-		const name = event.target.name;
-		const value = event.target.value;
-		console.log(event.target.value);
-		setInput(values => ({...values, [name]: value}));
+
+	const verify = useMemo(() => {
+		if (form.origin && form.destin && form.plan && form.callMinute) {
+			return false;
+		}
+		return true;
+	}, [form]);
+
+	const handleChange = useCallback(
+		(event:ChangeEvent<HTMLInputElement>) => {
+			const name = event.target.name;
+			const value = event.target.value;
+			setForm(values => ({...values, [name]: value}));
+		}, [form]
+	);
+		
+	const handleReset = () => {
+		setForm(initialForm);
+		!verify && setShowResult(!showResult);
+		setData([]);
 	};
+
+	const { data:origin, isError, isLoading } = useQuery('origin', () =>
+		api.get('/getAllOrigin')
+			.then(({data}) => convertArray(data, 'origin'))
+	);
 	
+	const { data:plans } = useQuery('getAllPlan', () =>
+		api.get('/getAllPlan')
+			.then(({data}) => convertArray(data, 'plan_name', 'plan_name'))
+	);
+
+	useEffect(() => {
+		if (form.origin){
+			api.get(`/getDestinByOrigin?origin=${form.origin}`)
+				.then(({data}) => setData(convertArray(data, 'destination')))
+				.catch(() => setData([]));
+		}
+	}, [form.origin]);
+		
+	if(isError) {
+		return <MessageDBError>Falha no Banco de Dados, tentando reconectar</MessageDBError>;
+	}
+
+	if(isLoading) {
+		return <Loading />;
+	}
 
 	return (
 		<>
-			<Container  onSubmit={onSubmit}>
-				<div style={{display:'flex', flexDirection:'row'}}>
-					<Input
+			<FormStyled noValidate onReset={handleReset} onSubmit={onSubmit}>
+				<SubContainerInputs>
+					<GroupButton 
+						data={data} 
+						origin={origin} 
+						plans={plans} 
+						form={form} 
 						handleChange={handleChange}
-						name="minute" 
-						label='input' 
-						placeholder='Digite seu numero' />
-					<Select handleChange={handleChange} name="origin" label="Origem" />
-					<Select handleChange={handleChange} name="destin" label="Destino" />
-					<Select handleChange={handleChange} name="plan" label="Plano" />
-				</div>
+					/>
+				</SubContainerInputs>
 				<ContainerButton>
-					<Button type='submit'>Button</Button>
-					<Button type='reset'>Reset</Button>
+					<Button type='submit'>Calcular</Button>
+					<Button type='reset'>Limpar</Button>
 				</ContainerButton>
-			</Container>
-			<Table />
+			</FormStyled>
+			{showResult?
+				<Result dataForm={dataResult}/>:
+				<Table />
+			}
 		</>
 	);
 }

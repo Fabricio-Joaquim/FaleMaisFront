@@ -1,6 +1,6 @@
 import React from 'react';
 import mock from './mock';
-
+import {MyTable} from './style';
 interface IMock {
     id?: number;
     origem: string;
@@ -10,7 +10,7 @@ interface IMock {
 
 const Table = () => {
 	return (
-		<table data-testid="table">
+		<MyTable data-testid="table">
 			<thead>
 				<tr>
 					<th>Origem</th>
@@ -21,15 +21,15 @@ const Table = () => {
 			<tbody>
 				{mock.map((item:IMock) => {
 					return (
-						<tr key={item?.id} style={{textAlign:'center'}} >
-							<td style={{border: '2px red solid', padding:10}}>{item?.origem}</td>
-							<td style={{border: '2px red solid', padding:10}}>{item?.destino}</td>
-							<td style={{border: '2px red solid', padding:10}}>{item?.valor}</td>
+						<tr key={item?.id}>
+							<td>{item?.origem}</td>
+							<td>{item?.destino}</td>
+							<td>{item?.valor}</td>
 						</tr>
 					);
 				})}
 			</tbody>
-		</table>
+		</MyTable>
 	);
 };
 
